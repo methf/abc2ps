@@ -1,0 +1,587 @@
+----- Version 1.5.0 -----
+
+15.05.2019 Removed GPL code from playabc.
+           Renamed getline function to avoid compilation problems on Mac.
+           Relicensed as LGPL-3.0-or-later.
+
+----- Version 1.4.2 (experimental) -----
+
+13.12.99 Fixed slurs/ties into first and second endings.
+
+
+----- Version 1.4.0 (experimental) -----
+
+06.12.99 added audio playback. 
+         Chords, grace notes, multiple voices, and repeats work. 
+         Note decorations are ignored.
+
+         Usage: Flag -a instructs to write audio file Abc.au together with 
+         the usual postscript output. It is not possible to get the audio file 
+         without the postscript. The output is in Sun/Next audio format, as
+         indicated by the extension au. The au file can then be played using 
+         something like "audiotool" or "soundtool" on a Sun, or by catting it
+         to /dev/audio, say on Linux. Doubleclicking in Windoze probably also works,
+         depending on the specific operating system. Flag -a implies -o. 
+         The tempo can be set with flag -Q and defaults to 120 quarter-beats 
+         per minute. There are some different "sounds", oriented somewhat towards
+         specific musical instruments, as far as this can be done with simple means.
+         These are selected with flag -q (for "quality"). 
+         
+         Thus:
+
+            abc2ps -o infile           - makes Postscript only, as usual.
+            abc2ps -o infile -a        - makes both Abc.au and Postscript
+            abc2ps -a infile           - same as above
+            abc2ps -a infile -Q 160    - does the same with tempo Q=160
+            abc2ps -a infile -q135     - uses audio quality 1,3,5 for the first, 
+                                         second, and third voice, respectively.
+
+         Alternatively, pseudocomments can be used in the abc input file
+         or in a .fmt file, for example:
+      
+            %%playtempo 160
+            %%auquality 135
+   
+         To see the parameters whcih determine the audio output, set the
+         verbosity to 5 or higher (ie. use -v5).
+
+         To compile: you can use the supplied audio functions in sox.h 
+         (taken from playabc) or (on a Sun) use the system library. 
+         Edit Makefile to set CC, CFLAGS, and LDFLAGS appropriately 
+         then type make.
+
+         The waveforms are generated on the fly, which is a bit slower than
+         writing Postscript only. Sine wave samples are significantly faster 
+         to generate than triangle or sawtooth waves.
+
+         Currently the sound qualities are somewhat along these lines (but please 
+         don't take this too seriously!):
+            1  piano
+            2  accordeon
+            3  flute
+            4  cembalo
+            5  organ
+            6  guitar, or bass, or something else plucked.
+
+
+
+08.07.99 Improvements by Christoph Dalitz:
+       o Source spread over several source files. Makefile added.
+
+       o cap_str (util.c):
+         system call toupper used, so that umlauts
+         are translated as well (depends on locale)
+
+       o isdigit (util.c): removed (are already in ctype.h)
+
+       o isblank (util.c): replaced with isblankstr 
+         (confusion with isblank in ctype.h)
+
+       o def_staff (syms.c):
+         linewidth increased (0.6 instead of 0.5)
+
+       o new clef "treble8" (modern tenor clef)
+
+
+----- Version 1.3.2 -----
+
+10.08.98 Added new codes for accents (cf. sample.abc):
+            k: Accent which looks like >
+            K: Accent which looks like an upside-down V.
+
+
+05.08.98 Added bar numbering and bar labels.
+         
+         Bar numbers: 
+         to switch on bar numbering, use flag -k
+         where:   -k 1     numbers every bar
+                  -k 5     numbers every fifth bar, etc.
+                  -k 0     numbers the first bar in every staff.
+         or, use the equivalent pseudocomment %%barnumbers <number>.
+         (Note: -k was used because it sounds a bit like "count".)
+
+         The program counts through the bars automatically, trying
+         to do the right thing at first and second endings. Namely:
+         it remembers the bar number at the start of the first ending,
+         then resets to that value at the start of the second ending.
+         So, if there is a tune with 2x8 measures with first and second
+         endings after the first 8 bars, we still end up with 16 bars
+         in total.
+         Within one tune, bar numbers are counted through over parts
+         boundaries. However, if a T: title appears inside a tune,
+         the bar number is reset to 1. You can use an empty T:
+         line to reset the bar number without actually writing a title.
+
+      
+         Bar labels: 
+         this is intended for large letters A, B, C...
+         to mark specific points in the music. They are coded by
+         using a syntax similar to guitarchords, but placed before
+         a bar line instead of a note or rest, e.g.:
+            | abcd "A"| ABCD |
+         places the letter A over the second bar line.
+         Just in case somebody wants a label on the first bar
+         (which is often not preceded by a bar line), a new 
+         symbol [|] was introduced for an "invisible" bar line.
+
+
+         Fonts for bar numbers and bar labels:
+         These can be set in the usual way with the two pseudocomments 
+         %%barnumberfont and %%barlabelfont.
+         
+         In printed music, the bar numbers are often made more visible
+         by putting a box around them. This is now also possible.
+         In fact, a box can be put around most bits of text by
+         adding the word "box" to the font specification, e.g.:
+
+            %%barnumberfont Times-Italic 11 box
+
+         This can be done for the title, guitarchords, vocals, etc.
+         To switch on the box without changing the font style and/or size,
+         the character * can be used, as in:
+      
+            %%titlefont * * box
+         
+         
+         A reminder: to see all the style specifications use 'abc2ps -H'
+         (for the standard format) or 'abc2ps -PH' (pretty2 format).
+         This gives a list suitable for placing in a .fmt file.
+         To modify settings for a single tune only, place the
+         pseudocomments after the 'T:' lines and before the 'K:' line
+         in the tune header.
+
+         
+         Examples: look at celloprelude.abc for examples of bar numbers
+         and bar labels. Try 'abc2ps -maxv 8 -k0 bran5' or
+         'abc2ps -k0 bach' to see bar numbers at the start of 
+         the line, as is often used for scores.
+
+
+
+20.07.98 Fixed bug overwriting when lvoiceid too short.
+
+----- Version 1.3.1 -----
+
+12.07.98 A number of enhancements to format multi-stave music nicely.
+         For examples, see files trio.abc bran5.abc voices.abc bach.abc.
+      
+         In detail: indentation of the first staff, labels for voices, 
+         braces and brackets to group voices, and some additional
+         parameters in the V: line to control the output.
+
+         As before, the syntax of the V: line is
+
+            V: <label> <par1>=<value1> <par2>=<value2>  ...
+         
+         where <label> is used to switch to the voice in later V: lines.
+         Each <par>=<value> pair sets one parameter for the current voice.
+         There are now alternate short version of the parameter names.
+
+
+         List of the parameters allowed in a V: line:
+
+         parm   short   example and description
+         ----------------------------------------
+
+         name    nm     nm=Violin I" 
+                        This sets the long version of the voice name, to be
+                        written before the staves at the start of a piece.
+                        If the string contains \\, this is interpreted
+                        as a line break and the pieces are writen above
+                        each other.
+
+         sname   snm    snm="Vl. I"
+                        Short version of the name, written before
+                        subsequent staves.
+      
+         clef    cl     clef=bass
+                        Chooses the clef (treble, alto, or bass).
+                        It can also be bass+8 and so on.
+         
+         staves  stv    stv=2
+                        This is the number of staves (starting from the
+                        current one) to connect by tall vertical bar lines.
+                        
+         brace   brc    brace=2 
+                        This is the number of staves (starting from the
+                        current one) to be grouped together with a brace.
+                        When this option is used, the name defined in the
+                        same V: line is written at the center of the brace.
+
+         bracket brk    brk=4
+                        The number of staves to be grouped together by
+                        a bracket. This option does not change the way
+                        in which the names are written.
+
+         space   spc    spc=40
+                        This defines or modifies the vertical space between
+                        this staff and the one below it. The space can be
+                        given in pt (default) or with a unit in the form 
+                        1cm or 0.4in. Furthermore: if a + or - sign
+                        comes after the start of the number, the value
+                        is an increment to be added to or subtracted
+                        from the default setting.
+
+         gchords gch    gch=0  
+                        This controls whether any guitar chords 
+                        embedded in the current voice are actually written.
+                        True/false are specified as for the %% formats. 
+
+         stems   stm    stems=up
+                        This is parsed but not yet used in the program.
+
+
+         New format directives:
+
+            %%voicefont       font to write voice names with
+
+            %%indent <dim>    amount to indent the first staff.
+                              Indentation is done at the start of
+                              the piece and after a T: field, but not
+                              after a P: field. 
+
+            Note: the margin still refers to the left edge of the staff.
+            Therefore, parameters %%leftmargin %%staffwidth %%indent
+            should be adjusted to leave room for the voice names.
+
+
+         New command-line flag:
+
+            The -V flag was redefined to select voices for output.
+            The old function ("show version") was integrated into -h.
+            The format is as in this example:
+
+               abc2ps -o input.abc -V 1-2,4
+            
+            This will generate output only for the specified voices. 
+            Specifically, a single voice can be extracted.
+    
+
+         Other changes:
+
+            For a rest which fills out a complete measure, the symbol 
+            for a full rest is drawn in the center of the bar, independent
+            of the the time signature.
+
+            Added K for strong emphasis decoration (upside-down V).
+
+
+
+
+31.05.98 L: after header but before first voice now sets default length
+         for first voice, named "1".
+
+12.05.98 Tab interpreted as space in music lines.
+
+01.04.98 Fixed Q:C=xxx for multi-stave version.
+
+19.03.98 Run-time allocation for symbols and voices.
+
+
+----- Version 1.3.0 -----
+
+03.03.98 Multi-stave music added.
+
+         To switch to a different voice, use a line starting with 'V:'.
+         An example for the most general form supported now is:
+            V:2 name="Clarinet 2" short="Cl.2" clef=treble stems=down 
+         Note that the "2" is a treated as a string, so any single-word
+         identifier can be used instead. Later in the tune,
+         switch to the voice using only
+            V:2
+         The various settings (key, default length, etc) are 
+         maintained for each voice separately.
+   
+         Guitar chords, first and second endings, and line breaks are 
+         taken from the top voice only. Vocals can be set under each
+         voice separately.
+
+         To format the output, two %% format directives were added
+         which determine the staff spacing: %%systaffsep %%systemsep.
+
+         It turned out that the note spacing should be slightly
+         different for multi-stave music. Namely, it is often a good
+         idea to space the notes somewhat more strictly according
+         to their duration than in single-stave music. There is now
+         a new parameter called "strictness" which the user can use
+         to adjust this. For strictness=1, the spacings for notes
+         with short durations is reasonably strictly proportional to
+         their duration. For strictness=0, they are spaced about
+         equally. Good defaults are strictness=0.5 for single-stave
+         music and strictness=0.8 for multistave music.
+         These parameters can be changed with the -X flag or 
+         with %% statements in the abc file or in a .fmt file.
+         When using -X, a flag such as -X 0.6 will change both
+         values. To change them separately, use something like
+         -X 0.3,0.7 on the command line.
+         
+         As usual, %% directives can be inspected with abc -H 
+         and help about flags is obtained with abc -h.
+
+         Files voices.abc and bach.abc have examples for multistave
+         music.
+
+01.03.98 Changed -d flag to accept incremental changes such as -d-5
+         or -d+5.
+
+28.12.97 Transposing added. Also double sharp and double flat symbols.
+         To transpose: use flag -t in two possible ways.
+         (1) Specify the new root explicitly using the form
+             -t XX   where XX is the new root note. For example:
+               -t C   or   -t Bb  or  -t C#
+             This shifts either up or down, depending on which shift is
+             smaller. To force up or down direction, use prefixes ^_ eg.
+               -t ^C   or   -t _C
+         (2) Specify the number of halftones to shift by in the form
+             -t nn  where nn is the number of halftones.
+             For negative shift, use either a sticky argument
+             such as -t-2 or prefix with underscore, eg -t _2.
+
+         In any case: the program first decides how many halftones
+         to shift the pitches by. This number is kept fixed throughout
+         the whole tune. In this way, key changes within the tune
+         are treated properly. 
+
+         To obain information about the transposing process, set the
+         verbosity to 3 or 4 (ie:  -v 3  or  -v 4).
+
+   
+24.12.97 Shift up guitar chords over n-plet brackets.
+
+15.12.97 Some modifications to extent of 1st and 2nd endings. 
+
+29.11.97 Q: field now prints out tempo denotations.
+         General form is Q: w1 w2 w3.. where each word is either
+         a string in double quotes such as "Andante" or "Bossa Nova"
+         or a tempo denotation such as C or C=120 or 120.
+         Strings are printed directly, denotations are translated 
+         to the form note=100. Font is in new format field "tempofont".
+
+29.11.97 Guitar chords positioned a bit more nicely (centered,
+         except if especially wide).
+
+29.11.97 Added blank-delimited +8 and -8 as extensions to key specifier.
+         Function: write all notes higher or lower by one octave.
+
+02.11.97 Words for vocals now centered under each note, looks nicer.
+         Changed left/right spacings to get better positioning for 
+         single note in a bar.
+
+----- Version 1.2.5 -----
+
+05.10.97 Added page numbers for flag -N. 
+
+05.10.97 Support for all modes (Wil Macaulay)
+
+07.08.97 Added "x" for rests which are invisible.
+
+14.07.97 Slurs and ties within chords improved, for example:
+         [(a(b] [c)d)]  slurs a to c, b to d 
+         [a-b] [ac]     ties a to a
+
+14.07.97 Grace notes can be before or after guitar chord:
+         "A"{A}Bc  and  {A}"A"Bc  both work.
+
+06.05.97 Fixed bug which sometimes put stems onto whole notes.
+
+06.03.97 Begintext lines can start with %%, to permit usage
+         in header fields and avoid conflict with other programs.
+
+17.02.97 Made txt array global.. avoid stack problems on Mac.
+         Added extra buffer flush at file end.
+
+15.02.97 C (alto) clef added, invoke with "K: alto"
+
+10.02.97 Now  \- in vocals for '-' without breaking the word.
+         Changed to work even if no 'T:' field.
+         Fixed bug: did not print 'O:' if no 'C:'.
+
+09.02.97 Added "%%titlecaps" format statement.
+
+07.02.97 Introduced decoration T for "tr" above a note. 
+
+----- Version 1.2.4b -----
+
+06.02.97 New: text, page formats, pseudocomments, bass clef.
+
+02.02.97 In-line escape sequences now also [..]
+
+23.01.97 removed "or:" from subtitles.
+
+
+----- Version 1.2.3-x1 -----
+
+26.11 Added aligned vocals under the staff. Example:
+      BA |: "Gm"G2AB|"C7"cd2e|"F"f2fe|"Dm"dA2d|
+      w: Close your eyes and I'll kiss you, to-mor-row I'll miss you; re-
+      "Bb"d2dc|"Gm"B2GF|"Eb"G4-|G2 z2|
+      w:mem-ber I'll al-ways be true._ 
+      Syntax:
+         Words are given in line starting as w: under music line.
+         Words are aligned one-by-one with the notes. 
+         * skips one note.
+         | tabs forward to next bar line.
+         Hyphenations make two syllables, with "-" between them.
+         Underscore draws horizontal line from last word to note.
+         Blanks can be dropped around special chars (* | - _ ).
+
+19.11 Added bagpipe mode for K:HP.
+      Added landscape orientation for flag -l.
+
+05.11 Put in some first pseudocomments to format output:
+      %%sep                         - writes a standard separator
+      %%sep topspace botspace len   - custom separator
+      %%newpage                     - force page break
+      %%text This is a line..       - write a line of text
+      %%vskip xx                    - add vertical space in cm 
+
+06.10 Added 32nd and 64th rests, 64th notes.
+      Accidentals and grace notes more spaced when room.
+      Correct treatment of slurs at 1st, 2nd endings.
+
+----- Version 1.2.2 -----
+
+22.09 Words like "aza" now under one beam with rest under it.
+      Output "Origin" field in parens together with composer.
+      Added ties between chords.
+   
+20.09 Keysigs such as "3+4/8"  "78/8"  "7 8/8" allowed.
+      Slopes of beams tuned a bit.
+      Fixed bug in position of tilde over stem.
+      Choose same stem directions on neighbors where reasonable.
+
+15.09 Small random horizontal shift of notes improve readability,
+      see RANFAC. Adjust internote spacing according to jump in pitch.
+
+05.08 Consistent handling for word breaks at end of input line.
+
+
+----- Version 1.2.1 -----
+
+28.07 Added W: for words of song.
+      Include notes, discography, transcription in output for -n.
+      Removed bug: ninf=0 messed up usage "abc2ps -h".
+
+26.07 Fixed: swallowed meter change sometimes.
+
+21.07 Correct handling of last line of file even if not terminated 
+      by a newline character.
+      Some fine-tuning for beam position when more than one beam.
+      For staff middle, use stem direction from previous note.
+
+18.07 More tolerant of misuse of guitar chords to write general stuff
+      above staff; now OK if "...." is alone on a line.
+      Minibug in syms.h: 'staff' left junk on PS stack.
+
+17.07 For -c mode: don't complain about underfull; don't stretch
+      last staff much when underfull (new parameter BETA_C).
+
+16.07 Fixed obscure bug.. after overfull, sometimes took duration for 
+      chord from wrong note, because heads were sorted by pitch.
+      Also: use shrinkage from previous staff for undefull last staff.
+
+15.07 Move slide further away for notes with accidentals.
+
+09.07 Selectors before first file also valid; apply to first file.
+      Took out atof & atoi calls; main now returns int; changed
+      function names def_HD,def_Hd,def_hd.
+      
+
+----- Version 1.2 -----
+
+06.07 New flag -O to set output file.
+
+26.06 Added general n-plet syntax "(p:q:r".
+
+10.06 Slurs fatter in middle.
+      Hold (fermata) added code=H.
+      Changed code for bar to M (em-phasis).
+      Added up and down bow u,v.
+
+09.06 Thick-thin, thin thick bars now [| and |].
+      Ties a-b-c now done correctly.
+      Carryover slurs at start and end of line.
+
+08.06 Flat beams shifted to consistent positions relative to staff.
+
+07.06 Set beta0 to avoid infinite stretching.
+      Redid key changes.. mcl.abc Cm-> C was wrong.
+      Fiddled some with slurs.
+
+05.06 Fixed: accidental was too close on full note.
+
+03.06 fix up n-plet cases: (1) on beam with other notes,
+      (2) draw bracket if not on same beam.
+
+03.06 New flag -E to make EPS files eps001.ps, eps002.ps ...
+
+02.05 Guitar chord can be put anywhere before note.
+      Changed note placement for single note in bar.
+
+30.04 Mutiple decorations permitted on one note.
+      Bar for broad emphasis added, code is R.
+
+29.04 Unions: chord with two identical notes like [CC]
+
+29.04 Slide added, code is J.
+
+26.04 Output buffer takes care of page breaks.
+
+----- Version 1.2x -----
+
+[v1.2-x7]
+
+11.04 Output to <file>.ps possible; set OUTPUTFILE in abc2ps.c
+
+[v1.2-x6]
+
+28.03 Can do normal or pretty output, depending on flag -p.
+      Layout parameters bundled as macros in main. 
+
+[v1.2-x5]
+
+21.03 Changed roll symbol some more.
+      Put extra \n at end of Out.ps.
+
+[v1.2-x4]
+
+17.03 Fixed nasty bug for selection by xref; now ok on NeXT.
+      Changed roll symbol.
+
+[v1.2-x3]
+
+14.03 Added roll sign as optional way to draw ~.
+      Changed program to avoid all 'gcc -Wall' warnings.
+
+10.03 Fixed wrong dimension for line in do_index (macro BSIZE)
+
+08.03 Took out '#copies..' in PS file.
+      Added -m flag to set margin.
+
+06.03 Added flag -i and interactive mode.
+      Fixed bug in beams, which wrote funny numbers over some beams.
+      Added "newpage" as option for E: field.
+
+04.03 Added -f flag to permit different selectors for different files.
+
+      Changed meter change within tune: for change at start of line,
+      generally writes the symbol (even if the meter did not change),
+      but not if the meter change was used only to set the default
+      length with 'l' or 's'.
+
+      Removed math calls: cos(phi) and sin(phi) defined explicitly
+      in syms.h, also removed sqrt for beam test in music.h.
+      Advantage: now compiles without -lm flag.
+      (Note: '#include <math.h>' still needed for atof ??)
+
+
+----- Version 1.1 -----
+
+24.02 Changed to multiple input files, added -e flag to identify
+      selectors in argument list.
+
+14.02 Outputs "book" field also for -n flag.
+      Chord font changed to Helvetica 12.
+
+
+
