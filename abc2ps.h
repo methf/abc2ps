@@ -27,9 +27,9 @@
 
 /* -------------- general macros ------------- */
 
-#define VERSION              "1.4"      /* version */
-#define REVISION             "exp"      /* revison */
-#define VDATE        "Dec  6 1999"      /* version date */
+#define VERSION              "1.5"      /* version */
+#define REVISION             "0"      /* revison */
+#define VDATE        "May  15 2019"      /* version date */
 #define VERBOSE0           2            /* default verbosity */
 #define DEBUG_LV           0            /* debug output level */
 #define OUTPUTFILE      "Out.ps"        /* standard output file */
