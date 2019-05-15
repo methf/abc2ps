@@ -29,7 +29,7 @@
 
 #define VERSION              "1.5"      /* version */
 #define REVISION             "0"      /* revison */
-#define VDATE        "May  15 2019"      /* version date */
+#define VDATE        "May 15 2019"      /* version date */
 #define VERBOSE0           2            /* default verbosity */
 #define DEBUG_LV           0            /* debug output level */
 #define OUTPUTFILE      "Out.ps"        /* standard output file */
